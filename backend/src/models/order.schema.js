@@ -43,4 +43,5 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// 36min
 export default mongoose.model("Order", orderSchema);
