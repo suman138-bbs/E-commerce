@@ -51,10 +51,20 @@ userSchema.methods = {
     }
   },
   // generate JWT token
-  getJWTtoken: function () {
-    JWT.sign({ _id: this._id, role: this.role }, config.JWT_SECRET, {
-      expiresIn: config.JWT_EXPIRY,
-    });
+  getJWTtoken: async function () {
+    try {
+      const token = await JWT.sign(
+        { _id: this._id, role: this.role },
+        config.JWT_SECRET,
+        {
+          expiresIn: config.JWT_EXPIRY,
+        }
+      );
+
+      return token;
+    } catch (error) {
+      console.log("Error generating token", error);
+    }
   },
 
   //generate forgot password token
@@ -76,5 +86,3 @@ userSchema.methods = {
 };
 
 export default mongoose.model("User", userSchema);
-
-// 2:33
