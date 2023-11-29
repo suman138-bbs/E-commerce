@@ -33,6 +33,8 @@ export const signUp = asyncHandler(async (req, res) => {
 
     user.password = undefined;
 
+    res.cookie("token", token, cookieOptions);
+
     res.status(200).json({
       success: true,
       token,
