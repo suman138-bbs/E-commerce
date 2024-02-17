@@ -1,25 +1,26 @@
 import mongoose from "mongoose";
-import AuthRoles from "../utils/authRoles.js";
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
-import config from "../config/index.js";
 import crypto from "crypto";
+import config from "../config/index.js";
+import AuthRoles from "../utils/authRoles.js";
 
-const userSchema = new mongoose.Schema(
+const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: ["true", "Name is required"],
-      maxLength: [50, "Name must be less than 50 chars"],
+      required: [true, "Name is required"],
+      maxLength: [50, "Name must be less than 50 characters"],
     },
     email: {
       type: String,
-      required: ["true", "Email is required"],
+      required: [true, "Email is required"],
+      unique: true,
     },
     password: {
       type: String,
       required: [true, "Password is required"],
-      minLength: [8, "password must be at least 8 chars"],
+      minLength: [8, "Password must be at least 8 characters"],
       select: false,
     },
     role: {
@@ -33,50 +34,39 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Encrypt the password before saving
-
+// Encrypt password before saving - HOOKS
 userSchema.pre("save", async function (next) {
+  // Only run this function if password was moddified (not on other update functions)
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
+//User Methods
 userSchema.methods = {
-  //compare Password
+  // Compare password entered by user with the hashed password in the database
   comparePassword: async function (enteredPassword) {
-    try {
-      return await bcrypt.compare(enteredPassword, this.password);
-    } catch (error) {
-      console.log("Error in comparing password");
-    }
-  },
-  // generate JWT token
-  getJWTtoken: async function () {
-    try {
-      const token = await JWT.sign(
-        { _id: this._id, role: this.role },
-        config.JWT_SECRET,
-        {
-          expiresIn: config.JWT_EXPIRY,
-        }
-      );
-
-      return token;
-    } catch (error) {
-      console.log("Error generating token", error);
-    }
+    return await bcrypt.compare(enteredPassword, this.password);
   },
 
-  //generate forgot password token
+  // For generating JWT Token - METHOD
+  getJwtToken: function () {
+    return JWT.sign({ _id: this._id, role: this.role }, config.JWT_SECRET, {
+      expiresIn: config.JWT_EXPIRY,
+    });
+  },
+
+  // generate forgotPasswordToken - METHOD (string)
   generateForgotPasswordToken: function () {
+    // generate long and random string
     const forgotToken = crypto.randomBytes(20).toString("hex");
-
-    //to encrypt the token which is generate by the crypto
+    // set the token to the forgotPasswordToken using crypto hashing and sha256 algorithm
     this.forgotPasswordToken = crypto
       .createHash("sha256")
       .update(forgotToken)
       .digest("hex");
 
+    // time for token to expire
     this.forgotPasswordExpiry = Date.now() + 20 * 60 * 1000;
 
     return forgotToken;

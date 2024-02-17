@@ -4,14 +4,14 @@ const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please provide a product name"],
+      required: ["true", "Please provide a product name"],
       trim: true,
-      maxLength: [120, "Product name should not be max than 120 chars"],
+      maxLength: [120, "Product Name should not be more than 120 characters"],
     },
     price: {
       type: Number,
       required: [true, "Please provide a product price"],
-      maxLength: [5, "Product price should not be max than 5 digits"],
+      maxLength: [5, "Product price should not be more than 5 digits"],
     },
     description: {
       type: String,
@@ -37,9 +37,7 @@ const productSchema = new mongoose.Schema(
       ref: "Collection",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 export default mongoose.model("Product", productSchema);

@@ -1,76 +1,108 @@
 import Collection from "../models/collection.schema.js";
-import asyncHandler from "../service/asyncHandler.js";
-import CustomError from "../utils/CustomError";
+import asyncHandler from "../services/asyncHandler.js";
+import CustomError from "../utils/customError.js";
+
+/**********************************************************
+ * @CREATE_COLLECTION
+ * @route https://localhost:5000/api/collection/
+ * @description Controller used for creating a new collection
+ * @description Only admin can create the collection
+ *********************************************************/
 
 export const createCollection = asyncHandler(async (req, res) => {
   const { name } = req.body;
+
   if (!name) {
-    throw new CustomError("collection name is required", 401);
+    throw new CustomError("Collection name is required", 400);
   }
 
-  // const collection = new Collection({name}).save()
-
-  const collection = await Collection.create({ name });
+  const collection = await Collection.create({
+    name,
+  });
 
   res.status(200).json({
     success: true,
-    message: "Collection was created successfully",
+    message: "Collection created Successfully",
     collection,
   });
 });
+
+/**
+ * @UPDATE_COLLECTION
+ * @route http://localhost:5000/api/collection/:collectionId
+ * @description Controller for updating the collection details
+ * @description Only admin can update the collection
+ */
 
 export const updateCollection = asyncHandler(async (req, res) => {
   const { name } = req.body;
   const { id: collectionId } = req.params;
 
   if (!name) {
-    throw new CustomError("collection name is required", 401);
+    throw new CustomError("Collection name is required", 400);
   }
-  const updatedCollection = await Collection.findByIdAndUpdate(
+
+  let updatedCollection = await Collection.findByIdAndUpdate(
     collectionId,
-    { name },
-    { new: true, runValidators: true }
+    {
+      name,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
   );
 
-  if (!updateCollection) {
-    throw new CustomError("collection not found", 400);
+  if (!updatedCollection) {
+    throw new CustomError("Collection not found", 404);
   }
+
   res.status(200).json({
     success: true,
-    message: "Collection updated successfully",
-    updateCollection,
+    message: "Collection Updated Successfully",
+    updatedCollection,
   });
 });
+
+/**
+ * @DELETE_COLLECTION
+ * @route http://localhost:5000/api/collection/:collectionId
+ * @description Controller for deleting the collection
+ * @description Only admin can delete the collection
+ */
 
 export const deleteCollection = asyncHandler(async (req, res) => {
   const { id: collectionId } = req.params;
+  const collectionToDelete = await Collection.findById(collectionId);
 
-  if (!id) {
-    throw new CustomError("collection id is required", 401);
+  if (!collectionToDelete) {
+    throw new CustomError("Collection not found", 404);
   }
-  const deletedCollection = await Collection.findByIdAndDelete(collectionId);
 
-  if (!deletedCollection) {
-    throw new CustomError("collection to be deleted not found", 400);
-  }
+  collectionToDelete.remove();
   res.status(200).json({
     success: true,
-    message: "Collection deleted successfully",
-    updateCollection,
+    message: "Collection has been deleted successfully",
   });
 });
 
-export const getAllCollection = asyncHandler(async (req, res) => {
+/**
+ * @GET_ALL_COLLECTION
+ * @route http://localhost:5000/api/collection/
+ * @description Controller for getting all collection list
+ * @description Only admin can get collection list
+ * @returns Collection Object with available collection in DB
+ */
+
+export const getAllCollections = asyncHandler(async (req, res) => {
   const collections = await Collection.find();
+
   if (!collections) {
-    req.status(400).json({
-      success: false,
-      message: "No collection to display",
-    });
+    throw new CustomError("No collection found", 404);
   }
+
   res.status(200).json({
     success: true,
-    message: "Collection deleted successfully",
     collections,
   });
 });

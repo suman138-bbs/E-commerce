@@ -1,24 +1,24 @@
-import mongoose from 'mongoose';
-import app from './App.js';
-import config from './config/index.js';
+import mongoose from "mongoose";
+import app from "./app.js";
+import config from "./config/index.js";
 
 (async () => {
-    try {
-        await mongoose.connect(config.MONGO_DB_URL)
-        console.log("DB connected!")
-        app.on('error', (error) => {   //This code because if error occur except DB connected
-            console.log('ERROR:', error)
-            throw error;
-        })
+  try {
+    await mongoose.connect(config.MONGODB_URL);
+    console.log("DB CONNECTED");
 
-        const onListinig = () => {
-            console.log(`Listinig Port ${config.PORT}`)
-        }
+    app.on("error", (err) => {
+      console.error("ERROR: ", err);
+      throw err;
+    });
 
-        app.listen(config.PORT,onListinig)
+    const onListening = () => {
+      console.log(`Listening on ${config.PORT}`);
+    };
 
-
-    } catch (error) {
-        console.log("Error While connecting to the Databases",error)
-    }
-})()
+    app.listen(config, onListening);
+  } catch (err) {
+    console.error("ERROR: ", err);
+    throw err;
+  }
+})();
